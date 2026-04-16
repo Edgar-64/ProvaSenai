@@ -30,6 +30,49 @@ export class ProductService {
     });
   }
 
+  async update(
+    id: number,
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+    },
+  ) {
+    await this.findOne(id);
+    if (data.email) {
+      const emailinUse = await this.prisma.user.findFirst({
+        where: {
+          email: data.email,
+          NOT: { id },
+        },
+      });
+      if (emailinUse) {
+        throw new BadRequestException('Email em uso por outro usuário');
+      }
+      if (data.password) {
+        data.password = await bcrypt.hash(data.password, 10);
+      }
+
+      return this.prisma.user.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+    }
+  }
+
+  async delete(id: number) {
+    await this.findOne(id);
+
+    await this.prisma.user.delete({
+      where: { id },
+    });
+  }
+
   async findOne(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
