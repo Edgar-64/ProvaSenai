@@ -21,6 +21,7 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
+    //CRUD Create - INSERT INTO
     return this.prisma.user.create({
       data: {
         name: data.name,
@@ -30,6 +31,68 @@ export class UsersService {
     });
   }
 
+  //CRUD Update - UPDATE SET name = ?, email = ?, password = ? WHERE id = ?
+  async update(
+    id: number,
+    data: {
+      name?: string;
+      email?: string;
+      password?: string;
+    },
+  ) {
+    await this.findOne(id);
+    if (data.email) {
+      const emailinUse = await this.prisma.user.findFirst({
+        where: {
+          email: data.email,
+          NOT: { id },
+        },
+      });
+      if (emailinUse) {
+        throw new BadRequestException('Email em uso por outro usuário');
+      }
+      if (data.password) {
+        data.password = await bcrypt.hash(data.password, 10);
+      }
+
+      return this.prisma.user.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+    }
+  }
+
+  //CRUD Delete - DELETE FROM WHERE id = ?
+  async delete(id: number) {
+    await this.findOne(id);
+
+    await this.prisma.user.delete({
+      where: { id },
+    });
+  }
+
+  //CRUD Read - SELECT * FROM WHERE id = ?
+  async findOne(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+    return user;
+  }
+
+  //CRUD Read - SELECT * FROM
   async findAll() {
     return this.prisma.user.findMany({
       select: {
@@ -40,6 +103,7 @@ export class UsersService {
     });
   }
 
+  //CRUD Read - SELECT * FROM WHERE email = ?
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
@@ -52,6 +116,7 @@ export class UsersService {
     });
   }
 
+  //CRUD Update - UPDATE SET name = ?, email = ? WHERE id = ?
   async login(data: { email: string; password: string }) {
     const user = await this.findByEmail(data.email);
 
