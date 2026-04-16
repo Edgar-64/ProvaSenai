@@ -8,16 +8,24 @@ PATCH: Aplica modificações parciais a um recurso.
 HEAD: Semelhante ao GET, mas solicita apenas o cabeçalho da resposta, sem o corpo.
 OPTIONS: Descreve as opções de comunicação permitidas para um recurso.
 */
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Get(:id)
-    findOne(@Param('id') id: string) {
-      return this.usersService.findOne(Number(+id));
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(Number(+id));
   }
 
   @Get()
@@ -36,15 +44,15 @@ export class UsersController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, 
- @Body() body: (name?: string, email?: string, password?: string),
-)
- {
-  return this.usersService.update(+id, body);
-}
+  update(
+    @Param('id') id: string,
+    @Body() body: { name?: string; email?: string; password?: string },
+  ) {
+    return this.usersService.update(+id, body);
+  }
 
   @Delete(':id')
-  delete(@Param('id') id: string,){
+  delete(@Param('id') id: string) {
     return this.usersService.delete(+id);
   }
 }
