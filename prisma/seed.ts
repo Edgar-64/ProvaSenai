@@ -10,10 +10,14 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
+  await prisma.user.deleteMany();
+
   const password = await bcrypt.hash('123456', 10);
 
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: 'admin@email.com' },
+    update: {},
+    create: {
       name: 'Admin',
       email: 'admin@email.com',
       password,
